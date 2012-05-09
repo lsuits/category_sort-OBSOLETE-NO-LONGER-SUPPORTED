@@ -27,7 +27,7 @@ if ($hassiteconfig) {
         'local_category_sort/selected_sort',
         get_string('selected_sort', 'local_category_sort'),
         get_string('selected_sort_desc', 'local_category_sort'),
-        'local_category_sort', $options
+        'do_nothing', $options
     );
 
     $sort_page->add(

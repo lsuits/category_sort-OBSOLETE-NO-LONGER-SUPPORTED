@@ -23,6 +23,8 @@ abstract class local_category_sort {
     }
 
     function sort_gather($sorter) {
+        $sorter->sorts['do_nothing'] =
+            array('title' => get_string('do_nothing', 'local_category_sort'));
         $sorter->sorts['local_category_sort'] = self::default_sort();
         return true;
     }

@@ -6,6 +6,8 @@ You can manage your sorts here.
 
  - Interested in adding your own? Check out the [documentation]({$a->help_url})
 ';
+$string['do_nothing'] = 'Do nothing';
+
 $string['sort_type'] = 'Alphabetical';
 $string['outside_help'] = 'https://github.com/lsuits/category_sort/wiki/Home';
 
