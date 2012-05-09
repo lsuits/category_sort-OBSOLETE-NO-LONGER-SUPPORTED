@@ -1,17 +1,19 @@
 <?php
 
 abstract class local_category_sort {
+    private static $sort_generator;
+
     function gather_sorts() {
         $sorter = new stdClass;
         $sorter->sorts = array();
 
         events_trigger('category_sort_gather', $sorter);
 
-        return $sorter;
+        return $sorter->sorts;
     }
 
     function default_sort() {
-        $name = get_string('local_category_sort', 'sort_type');
+        $name = get_string('sort_type', 'local_category_sort');
 
         return array(
             'title' => $name,
@@ -25,34 +27,35 @@ abstract class local_category_sort {
         return true;
     }
 
-    function format_sort($sort) {
-        return array($sort['title'] => serialize($sort));
+    function format_sort($key, $sort) {
+        return array($key => $sort['title']);
     }
 
-    function retrieve_sort($value) {
-        $fallback = array(self, 'sort_categories');
+    function retrieve_generator($key) {
+        $generators = self::gather_sorts();
 
-        $unserialized = unserialize($value);
+        $fallback = array('local_category_sort', 'sort_categories');
 
         $fails_basic = (
-            empty($unserialized) or
-            !file_exists($unserialized['includes'])
+            !isset($generators[$key]) or
+            !$sort = $generators[$key] or
+            !file_exists($sort['includes'])
         );
 
         if ($fails_basic) {
             return $fallback;
         }
 
-        if (!is_callable($unserialized['funciton'])) {
+        if (!is_callable($sort['funciton'])) {
             global $CFG;
-            include_once $CFG->dirroot . $unserialized['includes'];
+            include_once $CFG->dirroot . $sort['includes'];
 
-            if (!is_callable($unserialized['function'])) {
+            if (!is_callable($sort['function'])) {
                 return $fallback;
             }
         }
 
-        return $unserialized['function'];
+        return $sort['function'];
     }
 
     function sort_categories($categories, $parent) {
@@ -65,13 +68,15 @@ abstract class local_category_sort {
         global $DB;
 
         // Cache generator once successfully retrieved
-        if (!self::$sort_generator) {
+        if (empty(self::$sort_generator)) {
             $require = get_config('local_category_sort', 'selected_sort');
 
-            self::$sort_generator = self::retrieve_sort($require);
+            self::$sort_generator = self::retrieve_generator($require);
         }
 
-        uasort($categories, self::sort_generator($categories, $parent));
+        $params = array($categories, $parent);
+
+        uasort($categories, call_user_func_array(self::$sort_generator, $params));
 
         foreach ($categories as $category) {
             $category->sortorder = $sortorder++;
@@ -81,7 +86,7 @@ abstract class local_category_sort {
                 array('parent' => $category->id));
 
             // Apply sort to children
-            $sortorder = self::apply($children, $category);
+            $sortorder = self::apply($children, $sortorder, $category);
         }
 
         return $sortorder;
