@@ -13,7 +13,11 @@ class local_category_sort_setting extends admin_setting_configselect {
 
         $categories = $DB->get_records('course_categories', array('parent' => 0));
 
-        local_category_sort::apply($categories);
+        try {
+            local_category_sort::apply($categories);
+        } catch (Exception $e) {
+            return $e->getMessage();
+        }
 
         return $result;
     }

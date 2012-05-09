@@ -34,27 +34,33 @@ abstract class local_category_sort {
     }
 
     function retrieve_generator($key) {
+        global $CFG;
+
         $generators = self::gather_sorts();
 
-        $fallback = array('local_category_sort', 'sort_categories');
-
-        $fails_basic = (
-            !isset($generators[$key]) or
-            !$sort = $generators[$key] or
-            !file_exists($sort['includes'])
-        );
-
-        if ($fails_basic) {
-            return $fallback;
+        if (!isset($generators[$key]) or !$sort = $generators[$key]) {
+            throw new Exception(get_string('key_not_exists', 'local_category_sort'));
         }
 
-        if (!is_callable($sort['funciton'])) {
-            global $CFG;
-            include_once $CFG->dirroot . $sort['includes'];
+        $path_fail = (
+            isset($sort['includes']) and
+            $fullpath = $CFG->dirroot . $sort['includes'] and
+            !file_exists($fullpath)
+        );
 
-            if (!is_callable($sort['function'])) {
-                return $fallback;
-            }
+        if ($path_fail) {
+            throw new Exception(
+                get_string('key_bad_include', 'local_category_sort', $fullpath)
+            );
+        }
+
+        if (isset($fullpath)) include_once $fullpath;
+
+        if (!is_callable($sort['function'])) {
+            throw new Exception(
+                get_string('key_bad_function', 'local_category_sort',
+                print_r($sort['function'], true))
+            );
         }
 
         return $sort['function'];
@@ -73,7 +79,16 @@ abstract class local_category_sort {
         if (empty(self::$sort_generator)) {
             $require = get_config('local_category_sort', 'selected_sort');
 
-            self::$sort_generator = self::retrieve_generator($require);
+            try {
+                self::$sort_generator = self::retrieve_generator($require);
+            } catch (Exception $e) {
+                $code->key = $require;
+                $code->reason = $e->getMessage();
+
+                throw new Exception(
+                    get_string('key_failed', 'local_category_sort', $code)
+                );
+            }
         }
 
         $params = array($categories, $parent);
