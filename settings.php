@@ -19,9 +19,7 @@ if ($hassiteconfig) {
 
     $options = array_reduce($transformed, $flatten, array());
 
-    $sort_url = new moodle_url('/local/category_sort/sort.php');
-    $a->sort_url = $sort_url->out();
-    $a->help_url = get_string('local_category_sort', 'outside_help');
+    $a->help_url = get_string('outside_help', 'local_category_sort');
 
     $sort_setting = new local_category_sort_setting(
         'local_category_sort/selected_sort',
