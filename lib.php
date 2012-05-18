@@ -96,11 +96,23 @@ abstract class local_category_sort {
         uasort($categories, call_user_func_array(self::$sort_generator, $params));
 
         foreach ($categories as $category) {
-            $category->sortorder = $sortorder++;
+            $sortorder += 10000;
+            $category->sortorder = $sortorder;
             $DB->update_record('course_categories', $category);
 
-            $children = $DB->get_records('course_categories',
-                array('parent' => $category->id));
+            // Address course order; try to maintain course sort order
+            $by_cat = array('category' => $category->id);
+            $courses = $DB->get_records('course', $by_cat, 'sortorder ASC');
+
+            $internal_sort = $category->sortorder;
+            foreach ($courses as $course) {
+                $course->sortorder = $internal_sort++;
+                $DB->update_record('course', $course);
+            }
+
+            $children = $DB->get_records('course_categories', array(
+                'parent' => $category->id
+            ));
 
             // Apply sort to children
             $sortorder = self::apply($children, $sortorder, $category);
