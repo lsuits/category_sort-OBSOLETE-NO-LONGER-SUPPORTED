@@ -19,6 +19,7 @@ if ($hassiteconfig) {
 
     $options = array_reduce($transformed, $flatten, array());
 
+    $a = new stdClass;
     $a->help_url = get_string('outside_help', 'local_category_sort');
 
     $sort_setting = new local_category_sort_setting(

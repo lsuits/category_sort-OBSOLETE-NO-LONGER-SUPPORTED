@@ -3,7 +3,7 @@
 abstract class local_category_sort {
     private static $sort_generator;
 
-    function gather_sorts() {
+    public static function gather_sorts() {
         $sorter = new stdClass;
         $sorter->sorts = array();
 
@@ -12,7 +12,7 @@ abstract class local_category_sort {
         return $sorter->sorts;
     }
 
-    function default_sort() {
+    public static function default_sort() {
         $name = get_string('sort_type', 'local_category_sort');
 
         return array(
@@ -22,18 +22,18 @@ abstract class local_category_sort {
         );
     }
 
-    function sort_gather($sorter) {
+    public static function sort_gather($sorter) {
         $sorter->sorts['do_nothing'] =
             array('title' => get_string('do_nothing', 'local_category_sort'));
         $sorter->sorts['local_category_sort'] = self::default_sort();
         return true;
     }
 
-    function format_sort($key, $sort) {
+    public static function format_sort($key, $sort) {
         return array($key => $sort['title']);
     }
 
-    function retrieve_generator($key) {
+    public static function retrieve_generator($key) {
         global $CFG;
 
         $generators = self::gather_sorts();
@@ -66,13 +66,13 @@ abstract class local_category_sort {
         return $sort['function'];
     }
 
-    function sort_categories($categories, $parent) {
+    public static function sort_categories($categories, $parent) {
         return function ($a, $b) {
             return strcmp($a->name, $b->name);
         };
     }
 
-    function apply($categories, $sortorder=0, $parent=0) {
+    public static function apply($categories, $sortorder=0, $parent=0) {
         global $DB;
 
         // Cache generator once successfully retrieved
